@@ -17,6 +17,8 @@ public:
     // Option selection
     uint8_t getCurrentOption() const;
     void setCurrentOption(uint8_t index);
+    void incrementOption(uint8_t maxValue = 10);
+    void decrementOption();
 
     // Answer storage
     const uint8_t* getSavedOptions() const;

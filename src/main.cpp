@@ -18,6 +18,8 @@ void setup() {
 
 void loop() {
     static uint32_t lastTick = millis();
+    static long encoderPosition = 0;
+
     uint32_t now = millis();
     uint32_t elapsed = now - lastTick;
 
@@ -27,6 +29,20 @@ void loop() {
     }
 
     M5Dial.update();
+
+    long newPosition = M5Dial.Encoder.read();
+    if (newPosition != encoderPosition) {
+        long delta = newPosition - encoderPosition;
+
+        if (delta > 0) {
+            g_appState.incrementOption(10);
+        } else {
+            g_appState.decrementOption();
+        }
+
+        g_uiManager.updateOptionsDisplay(g_appState.getCurrentOption());
+        encoderPosition = newPosition;
+    }
 
     delay(5);
 }

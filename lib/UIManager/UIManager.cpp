@@ -83,6 +83,12 @@ void UIManager::setNextOption(int value) {
     lv_label_set_text(ui_lblNextOption1, buf);
 }
 
+void UIManager::updateOptionsDisplay(int currentValue) {
+    setCurrentOption(currentValue);
+    setPreviousOption(currentValue - 1);
+    setNextOption(currentValue + 1);
+}
+
 UIState UIManager::getCurrentState() const {
     return currentState;
 }

@@ -37,6 +37,18 @@ void AppState::setCurrentOption(uint8_t index) {
     currentOption = index;
 }
 
+void AppState::incrementOption(uint8_t maxValue) {
+    if (currentOption < maxValue) {
+        currentOption++;
+    }
+}
+
+void AppState::decrementOption() {
+    if (currentOption > 0) {
+        currentOption--;
+    }
+}
+
 const uint8_t* AppState::getSavedOptions() const {
     return savedOptions;
 }

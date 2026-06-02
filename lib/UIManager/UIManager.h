@@ -31,6 +31,7 @@ public:
     void setCurrentOption(int value);
     void setPreviousOption(int value);
     void setNextOption(int value);
+    void updateOptionsDisplay(int currentValue);
 
     UIState getCurrentState() const;
 
