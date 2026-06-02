@@ -1,18 +1,19 @@
-#include <Arduino.h>
+#include <M5Unified.h>
 
-// put function declarations here:
-int myFunction(int, int);
+void setup()
+{
+    auto cfg = M5.config();
+    M5.begin(cfg);
 
-void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+    Serial.begin(115200);
+
+    M5.Display.fillScreen(BLACK);
+
+    M5.Display.setCursor(20,20);
+    M5.Display.print("Hello M5Dial");
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+void loop()
+{
+    M5.update();
 }
