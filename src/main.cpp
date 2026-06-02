@@ -41,6 +41,7 @@ void loop() {
         }
 
         g_uiManager.updateOptionsDisplay(g_appState.getCurrentOption());
+        M5Dial.Speaker.tone(8000, 20);
         encoderPosition = newPosition;
     }
 

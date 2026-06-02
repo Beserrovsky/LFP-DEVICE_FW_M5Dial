@@ -85,8 +85,18 @@ void UIManager::setNextOption(int value) {
 
 void UIManager::updateOptionsDisplay(int currentValue) {
     setCurrentOption(currentValue);
-    setPreviousOption(currentValue - 1);
-    setNextOption(currentValue + 1);
+
+    if (currentValue == 0) {
+        setPreviousOption(0);  // Will show as space due to wrap logic
+    } else {
+        setPreviousOption(currentValue - 1);
+    }
+
+    if (currentValue == 10) {
+        setNextOption(10);  // Will show as space due to wrap logic
+    } else {
+        setNextOption(currentValue + 1);
+    }
 }
 
 UIState UIManager::getCurrentState() const {
