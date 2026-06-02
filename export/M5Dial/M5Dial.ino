@@ -15,8 +15,6 @@ static lv_disp_drv_t disp_drv;  // Descriptor of a display driver
 #define LV_HOR_RES_MAX 240
 M5GFX *tft;
 
-long oldPosition = -999;
-
 void tft_lv_initialization() {
   lv_init();
   static lv_color_t buf1[(LV_HOR_RES_MAX * LV_VER_RES_MAX) / 10];  // Declare a buffer for 1/10 screen siz
@@ -47,6 +45,10 @@ void init_disp_driver() {
   lv_disp_set_bg_color(NULL, lv_color_hex3(0x000));  // Set default background color to black
 }
 
+int currentOption = 3;
+long oldPosition = 0;
+
+
 void setup()
 {
   auto cfg = M5.config();
@@ -56,25 +58,78 @@ void setup()
   tft_lv_initialization();
   init_disp_driver();
   ui_init();
+
+  updateOptions();
+  oldPosition = M5Dial.Encoder.read();
 }
 
+
+void updateOptions() // Update QuestionScreen1 Previous, Current and Next NPS values!
+{
+    char buf[4];
+
+    // Atual
+    sprintf(buf, "%d", currentOption);
+    lv_label_set_text(ui_lblCurrentOption1, buf);
+
+    // Anterior (wrap)
+    if (currentOption == 0)
+    {
+      strcpy(buf, " ");
+    }
+    else
+    {
+      sprintf(buf, "%d", currentOption - 1);
+    }
+    lv_label_set_text(ui_lblPrevOption1, buf);
+
+    // Próximo (wrap)
+    if (currentOption == 10)
+    {
+      strcpy(buf, " ");
+    }
+    else
+    {
+      sprintf(buf, "%d", currentOption + 1);
+    }
+
+    lv_label_set_text(ui_lblNextOption1, buf);
+}
 
 
 void loop()
 {
-    // Process LVGL timers for animation updates
     lv_tick_inc(5);
     lv_timer_handler();
-    
-    // Brief delay to allow other tasks and prevent 100% CPU
+
     M5.delay(5);
-    
+
     M5Dial.update();
+
     long newPosition = M5Dial.Encoder.read();
-    if (newPosition != oldPosition) {
+
+    if (newPosition != oldPosition)
+    {
+        long delta = newPosition - oldPosition;
+
+        if (delta > 0)
+        {
+            currentOption++;
+            if (currentOption > 10)
+                currentOption = 10;
+        }
+        else
+        {
+            currentOption--;
+            if (currentOption < 0)
+                currentOption = 0;
+        }
+
+        updateOptions();
+
         M5Dial.Speaker.tone(8000, 20);
+
         oldPosition = newPosition;
     }
 }
-
 
