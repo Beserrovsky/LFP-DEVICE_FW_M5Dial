@@ -10,7 +10,7 @@ static lv_color_t g_mirrorBuf[DISPLAY_WIDTH];
 DisplayDriver g_displayDriver;
 
 DisplayDriver::DisplayDriver()
-    : mirrorEnabled(false), width(DISPLAY_WIDTH), height(DISPLAY_HEIGHT) {
+    : mirrorEnabled(true), width(DISPLAY_WIDTH), height(DISPLAY_HEIGHT) {
 }
 
 DisplayDriver::~DisplayDriver() {
