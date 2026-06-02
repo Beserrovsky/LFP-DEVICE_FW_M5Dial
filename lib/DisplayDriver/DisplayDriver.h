@@ -1,7 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <M5Unified.h>
+#include <M5Dial.h>
+#include <lvgl.h>
 
 class DisplayDriver {
 public:
@@ -9,8 +10,7 @@ public:
     ~DisplayDriver();
 
     bool init();
-    void update();
-    void flush();
+    void update(uint32_t elapsed_ms);
     void setMirrorEnabled(bool enabled);
     bool getMirrorEnabled() const;
 
@@ -21,6 +21,8 @@ private:
     bool mirrorEnabled;
     uint16_t width;
     uint16_t height;
+
+    static void flushCallback(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p);
 };
 
 extern DisplayDriver g_displayDriver;

@@ -18,22 +18,24 @@ public:
     ~UIManager();
 
     bool init();
-    void update();
 
     void showSplash();
-    void showQuestion(uint8_t questionIndex, uint8_t optionCount,
-                      const char* questionText, const char* currentOption);
+    void showQuestion(uint8_t questionNum, uint8_t totalQuestions,
+                      const char* text, const char* currentOption,
+                      const char* prevOption, const char* nextOption);
     void showTextEntry(const char* currentName);
     void showSending();
     void showSuccess();
     void showError(const char* errorMessage);
 
+    void setCurrentOption(int value);
+    void setPreviousOption(int value);
+    void setNextOption(int value);
+
     UIState getCurrentState() const;
-    uint32_t getStateEnteredTime() const;
 
 private:
     UIState currentState;
-    uint32_t stateEnteredAt;
 };
 
 extern UIManager g_uiManager;

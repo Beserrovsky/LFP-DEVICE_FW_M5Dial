@@ -1,62 +1,89 @@
+#include <lvgl.h>
 #include "UIManager.h"
+#include <ui.h>
+#include <stdio.h>
+#include <string.h>
 
 UIManager g_uiManager;
 
 UIManager::UIManager()
-    : currentState(UI_STATE_SPLASH), stateEnteredAt(0) {
+    : currentState(UI_STATE_SPLASH) {
 }
 
 UIManager::~UIManager() {
 }
 
 bool UIManager::init() {
+    currentState = UI_STATE_SPLASH;
+    ui_init();
     return true;
-}
-
-void UIManager::update() {
 }
 
 void UIManager::showSplash() {
     currentState = UI_STATE_SPLASH;
-    stateEnteredAt = 0;
 }
 
-void UIManager::showQuestion(uint8_t questionIndex, uint8_t optionCount,
-                              const char* questionText, const char* currentOption) {
-    (void)questionIndex;
-    (void)optionCount;
-    (void)questionText;
-    (void)currentOption;
+void UIManager::showQuestion(uint8_t questionNum, uint8_t totalQuestions,
+                              const char* text, const char* currentOption,
+                              const char* prevOption, const char* nextOption) {
     currentState = UI_STATE_QUESTION;
-    stateEnteredAt = 0;
+
+    char stepBuf[32];
+    snprintf(stepBuf, sizeof(stepBuf), "Q %d/%d", questionNum, totalQuestions);
+
+    lv_label_set_text(ui_lblQuestionStep1, stepBuf);
+    lv_label_set_text(ui_lblQuestionText1, text);
+    lv_label_set_text(ui_lblCurrentOption1, currentOption);
+    lv_label_set_text(ui_lblPrevOption1, prevOption);
+    lv_label_set_text(ui_lblNextOption1, nextOption);
+
+    lv_disp_load_scr(ui_questionScreen1);
 }
 
 void UIManager::showTextEntry(const char* currentName) {
-    (void)currentName;
     currentState = UI_STATE_TEXT_ENTRY;
-    stateEnteredAt = 0;
 }
 
 void UIManager::showSending() {
     currentState = UI_STATE_SENDING;
-    stateEnteredAt = 0;
 }
 
 void UIManager::showSuccess() {
     currentState = UI_STATE_SUCCESS;
-    stateEnteredAt = 0;
 }
 
 void UIManager::showError(const char* errorMessage) {
-    (void)errorMessage;
     currentState = UI_STATE_ERROR;
-    stateEnteredAt = 0;
+    (void)errorMessage;
+}
+
+void UIManager::setCurrentOption(int value) {
+    char buf[4];
+    snprintf(buf, sizeof(buf), "%d", value);
+    lv_label_set_text(ui_lblCurrentOption1, buf);
+}
+
+void UIManager::setPreviousOption(int value) {
+    char buf[4];
+    if (value == 0) {
+        strcpy(buf, " ");
+    } else {
+        snprintf(buf, sizeof(buf), "%d", value);
+    }
+    lv_label_set_text(ui_lblPrevOption1, buf);
+}
+
+void UIManager::setNextOption(int value) {
+    char buf[4];
+    if (value == 10) {
+        strcpy(buf, " ");
+    } else {
+        snprintf(buf, sizeof(buf), "%d", value);
+    }
+    lv_label_set_text(ui_lblNextOption1, buf);
 }
 
 UIState UIManager::getCurrentState() const {
     return currentState;
 }
 
-uint32_t UIManager::getStateEnteredTime() const {
-    return stateEnteredAt;
-}

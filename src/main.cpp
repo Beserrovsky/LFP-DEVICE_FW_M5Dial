@@ -1,22 +1,30 @@
-#include <M5Unified.h>
-#include <DisplayDriver.h>
-#include <NFCManager.h>
-#include <ESPNowManager.h>
-#include <UIManager.h>
-#include <AppState.h>
+#include <M5Dial.h>
+#include "DisplayDriver.h"
+#include "UIManager.h"
 
 void setup() {
+    auto cfg = M5.config();
+    M5Dial.begin(cfg, true, false);
+    M5Dial.Display.setBrightness(128);
+
+    Serial.begin(115200);
+    delay(500);
+
     g_displayDriver.init();
-    g_nfcManager.init();
-    g_espNowManager.init();
     g_uiManager.init();
-    g_appState.init();
 }
 
 void loop() {
-    g_displayDriver.update();
-    g_nfcManager.update();
-    g_espNowManager.update();
-    g_uiManager.update();
-    g_appState.update();
+    static uint32_t lastTick = millis();
+    uint32_t now = millis();
+    uint32_t elapsed = now - lastTick;
+
+    if (elapsed > 0) {
+        g_displayDriver.update(elapsed);
+        lastTick = now;
+    }
+
+    M5Dial.update();
+
+    delay(5);
 }
