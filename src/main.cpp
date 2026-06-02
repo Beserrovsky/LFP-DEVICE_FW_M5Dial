@@ -1,6 +1,7 @@
 #include <M5Dial.h>
 #include "DisplayDriver.h"
 #include "UIManager.h"
+#include "AppState.h"
 
 void setup() {
     auto cfg = M5.config();
@@ -12,6 +13,7 @@ void setup() {
 
     g_displayDriver.init();
     g_uiManager.init();
+    g_appState.init();
 }
 
 void loop() {
