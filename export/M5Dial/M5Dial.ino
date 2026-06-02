@@ -24,11 +24,24 @@ void tft_lv_initialization() {
   tft=&M5Dial.Lcd;
 }
 
+bool mirrorEnabled = true;
+
 // Display flushing
 void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
 {
     uint32_t w = area->x2 - area->x1 + 1;
     uint32_t h = area->y2 - area->y1 + 1;
+
+    if (!mirrorEnabled)
+    {
+        tft->startWrite();
+        tft->setAddrWindow(area->x1, area->y1, w, h);
+        tft->pushColors((uint16_t *)&color_p->full, w * h, true);
+        tft->endWrite();
+
+        lv_disp_flush_ready(disp);
+        return;
+    }
 
     static lv_color_t mirror_buf[LV_HOR_RES_MAX];
 
@@ -134,6 +147,21 @@ void loop()
     M5.delay(5);
 
     M5Dial.update();
+
+    if (M5Dial.BtnA.pressedFor(1000))
+    {
+        mirrorEnabled = !mirrorEnabled;
+
+        lv_obj_invalidate(lv_scr_act());
+
+        M5Dial.Speaker.tone(4000, 100);
+
+        while (M5Dial.BtnA.isPressed())
+        {
+            M5Dial.update();
+            delay(10);
+        }
+    }
 
     long newPosition = M5Dial.Encoder.read();
 
