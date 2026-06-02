@@ -51,7 +51,7 @@ void setup()
 {
   auto cfg = M5.config();
   M5Dial.begin(cfg, true, false);
-  M5Dial.Display.setBrightness(80);
+  M5Dial.Display.setBrightness(100);
   Serial.begin(115200);
   tft_lv_initialization();
   init_disp_driver();
@@ -62,16 +62,19 @@ void setup()
 
 void loop()
 {
-    uint32_t wait_ms = lv_timer_handler();
-    M5.delay(wait_ms);  
-
+    // Process LVGL timers for animation updates
+    lv_tick_inc(5);
+    lv_timer_handler();
+    
+    // Brief delay to allow other tasks and prevent 100% CPU
+    M5.delay(5);
+    
     M5Dial.update();
     long newPosition = M5Dial.Encoder.read();
     if (newPosition != oldPosition) {
         M5Dial.Speaker.tone(8000, 20);
         oldPosition = newPosition;
     }
-
 }
 
 
