@@ -25,14 +25,43 @@ void tft_lv_initialization() {
 }
 
 // Display flushing
-void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p) {
-  uint32_t w = (area->x2 - area->x1 + 1);
-  uint32_t h = (area->y2 - area->y1 + 1);
-  tft->startWrite();
-  tft->setAddrWindow(area->x1, area->y1, w, h);
-  tft->pushColors((uint16_t *)&color_p->full, w * h, true);
-  tft->endWrite();
-  lv_disp_flush_ready(disp);
+void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
+{
+    uint32_t w = area->x2 - area->x1 + 1;
+    uint32_t h = area->y2 - area->y1 + 1;
+
+    static lv_color_t mirror_buf[LV_HOR_RES_MAX];
+
+    uint32_t mirror_x = LV_HOR_RES_MAX - area->x2 - 1;
+
+    tft->startWrite();
+
+    for(uint32_t y = 0; y < h; y++)
+    {
+        lv_color_t* src = color_p + (y * w);
+
+        for(uint32_t x = 0; x < w; x++)
+        {
+            mirror_buf[x] = src[w - 1 - x];
+        }
+
+        tft->setAddrWindow(
+            mirror_x,
+            area->y1 + y,
+            w,
+            1
+        );
+
+        tft->pushColors(
+            (uint16_t*)&mirror_buf[0].full,
+            w,
+            true
+        );
+    }
+
+    tft->endWrite();
+
+    lv_disp_flush_ready(disp);
 }
 
 void init_disp_driver() {
