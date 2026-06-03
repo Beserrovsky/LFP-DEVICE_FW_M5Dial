@@ -10,10 +10,11 @@ struct QuestionDef {
 
 // ── Tutorial option lists ────────────────────────────────────────────────────
 
-// Step 1: user starts at index 1 (prev="X", current="X", next="OK")
-static const char* const TUTORIAL_STEP1_OPTIONS[] = { "X", "X", "OK" };
-static const uint8_t TUTORIAL_STEP1_START   = 1;   // index of initial position
-static const uint8_t TUTORIAL_STEP1_OK_IDX  = 2;   // index of "OK" option
+// Step 1: user starts on "X" (index 0) and rotates right to reach "OK".
+// Rotating left at X is allowed (encoder registers the intent) but stays clamped at 0.
+static const char* const TUTORIAL_STEP1_OPTIONS[] = { "X", "OK" };
+static const uint8_t TUTORIAL_STEP1_START   = 0;   // initial position: X
+static const uint8_t TUTORIAL_STEP1_OK_IDX  = 1;   // OK is at index 1
 
 // Step 2: five X options, user can scroll freely
 static const char* const TUTORIAL_STEP2_OPTIONS[] = { "X", "X", "X", "X", "X" };
@@ -40,4 +41,5 @@ static const uint8_t NUM_QUESTIONS = 4;
 
 // ── WaitOrClick messages ─────────────────────────────────────────────────────
 
-static const char* const MSG_SUCCESS = "Thanks!\n\nFind yourself at the bigger screen.";
+static const char* const MSG_SUCCESS     = "Thanks!\n\nFind yourself at the bigger screen.";
+static const char* const MSG_SEND_FAILED = "Error!\n\nSend failed! Please try again.";

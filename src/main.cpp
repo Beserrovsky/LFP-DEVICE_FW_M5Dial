@@ -20,12 +20,14 @@ static const char* optionLabel(const char* const* options, uint8_t numOptions, i
 
 // ── Tutorial UI refresh ───────────────────────────────────────────────────────
 
+static const uint8_t TUTORIAL_STEP1_NUM = 2; // ["X", "OK"]
+
 static void refreshTutorialStep1(const char* instruction, uint8_t optIdx) {
     g_uiManager.showQuestion(
         "Tutorial", "1/2", instruction, 0,
-        optionLabel(TUTORIAL_STEP1_OPTIONS, 3, (int)optIdx),
-        optionLabel(TUTORIAL_STEP1_OPTIONS, 3, (int)optIdx - 1),
-        optionLabel(TUTORIAL_STEP1_OPTIONS, 3, (int)optIdx + 1)
+        optionLabel(TUTORIAL_STEP1_OPTIONS, TUTORIAL_STEP1_NUM, (int)optIdx),
+        optionLabel(TUTORIAL_STEP1_OPTIONS, TUTORIAL_STEP1_NUM, (int)optIdx - 1),
+        optionLabel(TUTORIAL_STEP1_OPTIONS, TUTORIAL_STEP1_NUM, (int)optIdx + 1)
     );
 }
 
@@ -61,6 +63,25 @@ static void startQuestion(uint8_t qIdx) {
         optionLabel(q.options, q.numOptions, 1)
     );
     Serial.printf("[STATE] → Question %d\n", qIdx + 1);
+}
+
+// Go back to a question restoring the previously saved option selection.
+static void goBackToQuestion(uint8_t qIdx) {
+    uint8_t savedOpt = g_appState.getSavedOption(qIdx);
+    g_appState.setCurrentQuestion(qIdx);
+    g_appState.setCurrentOption(savedOpt);
+    g_appState.setCurrentScreen(SCREEN_QUESTION);
+
+    const QuestionDef& q = QUESTIONS[qIdx];
+    char num[8];
+    snprintf(num, sizeof(num), "%d/5", qIdx + 1);
+    g_uiManager.showQuestion(
+        "Question", num, q.text, (int)(qIdx + 1),
+        optionLabel(q.options, q.numOptions, (int)savedOpt),
+        optionLabel(q.options, q.numOptions, (int)savedOpt - 1),
+        optionLabel(q.options, q.numOptions, (int)savedOpt + 1)
+    );
+    Serial.printf("[STATE] → Back to Question %d (option %d)\n", qIdx + 1, savedOpt);
 }
 
 static void goConfirm() {
@@ -202,17 +223,42 @@ static void handleQuestion(uint8_t clicks, int encoderDelta) {
         } else {
             goConfirm();
         }
+    } else if (clicks == 2 && qIdx > 0) {
+        Serial.printf("[Q%d] double click → back to Q%d\n", qIdx + 1, qIdx);
+        goBackToQuestion(qIdx - 1);
     }
 }
 
 static void handleConfirm(uint8_t clicks, int /*encoderDelta*/) {
     if (clicks == 1) {
         Serial.println("[Confirm] single click → submit");
-        // Phase 3: real ESP-NOW send goes here
-        goWaitOrClick(true, MSG_SUCCESS);
+
+        SurveyPacket pkt = {};
+        pkt.packetType   = PACKET_SUBMISSION;
+        pkt.device_id    = 3;
+        pkt.counter      = millis() & 0xFFFF;
+        pkt.timestamp_ms = millis();
+
+        pkt.innovation        = (int)g_appState.getSavedOption(0) + 1;
+        pkt.satisfactionIndex = (int)g_appState.getSavedOption(1);
+        pkt.nps               = (int)g_appState.getSavedOption(2);
+
+        uint8_t fishIdx = g_appState.getSavedOption(3);
+        strncpy(pkt.fishType,   QUESTIONS[3].options[fishIdx], sizeof(pkt.fishType)   - 1);
+        strncpy(pkt.fishColour, "",                            sizeof(pkt.fishColour) - 1);
+        strncpy(pkt.name,       "Debug",                       sizeof(pkt.name)       - 1);
+
+        bool ok = g_espNowManager.sendSurvey(pkt);
+        Serial.printf("[ESP-NOW] Survey send: %s\n", ok ? "SUCCESS" : "FAILED");
+
+        if (ok) {
+            goWaitOrClick(true, MSG_SUCCESS);
+        } else {
+            goWaitOrClick(false, MSG_SEND_FAILED);
+        }
     } else if (clicks == 2) {
         Serial.println("[Confirm] double click → back to Q4");
-        startQuestion(NUM_QUESTIONS - 1);
+        goBackToQuestion(NUM_QUESTIONS - 1);
     }
 }
 
