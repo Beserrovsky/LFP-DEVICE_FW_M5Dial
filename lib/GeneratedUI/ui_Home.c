@@ -6,7 +6,9 @@
 #include "ui.h"
 
 lv_obj_t * ui_Home = NULL;
-lv_obj_t * ui_lblHomeNFC = NULL;
+lv_obj_t * ui_lblHomeTitle = NULL;
+lv_obj_t * ui_lblHomeSubTitle = NULL;
+lv_obj_t * ui_lblHomeAuxiliary = NULL;
 // event funtions
 
 // build funtions
@@ -18,12 +20,36 @@ void ui_Home_screen_init(void)
     lv_obj_set_style_bg_color(ui_Home, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui_Home, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    ui_lblHomeNFC = lv_label_create(ui_Home);
-    lv_obj_set_width(ui_lblHomeNFC, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_lblHomeNFC, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_align(ui_lblHomeNFC, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_lblHomeNFC, "NFC");
-    lv_obj_set_style_text_font(ui_lblHomeNFC, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
+    ui_lblHomeTitle = lv_label_create(ui_Home);
+    lv_obj_set_width(ui_lblHomeTitle, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_lblHomeTitle, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_lblHomeTitle, -1);
+    lv_obj_set_y(ui_lblHomeTitle, lv_pct(-20));
+    lv_obj_set_align(ui_lblHomeTitle, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_lblHomeTitle, "J&J");
+    lv_obj_set_style_text_font(ui_lblHomeTitle, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_lblHomeSubTitle = lv_label_create(ui_Home);
+    lv_obj_set_width(ui_lblHomeSubTitle, lv_pct(76));
+    lv_obj_set_height(ui_lblHomeSubTitle, LV_SIZE_CONTENT);    /// 80
+    lv_obj_set_x(ui_lblHomeSubTitle, lv_pct(0));
+    lv_obj_set_y(ui_lblHomeSubTitle, lv_pct(5));
+    lv_obj_set_align(ui_lblHomeSubTitle, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_lblHomeSubTitle, "LFP - SUGAR 26\n");
+    lv_obj_set_style_text_align(ui_lblHomeSubTitle, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_lblHomeSubTitle, &lv_font_montserrat_18, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_lblHomeAuxiliary = lv_label_create(ui_Home);
+    lv_obj_set_width(ui_lblHomeAuxiliary, LV_SIZE_CONTENT);   /// 10
+    lv_obj_set_height(ui_lblHomeAuxiliary, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_lblHomeAuxiliary, 0);
+    lv_obj_set_y(ui_lblHomeAuxiliary, lv_pct(25));
+    lv_obj_set_align(ui_lblHomeAuxiliary, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_lblHomeAuxiliary, "NFC or (5x) click\nto start");
+    lv_obj_set_style_text_color(ui_lblHomeAuxiliary, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_lblHomeAuxiliary, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_align(ui_lblHomeAuxiliary, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(ui_lblHomeAuxiliary, &lv_font_montserrat_22, LV_PART_MAIN | LV_STATE_DEFAULT);
 
 }
 
@@ -33,6 +59,8 @@ void ui_Home_screen_destroy(void)
 
     // NULL screen variables
     ui_Home = NULL;
-    ui_lblHomeNFC = NULL;
+    ui_lblHomeTitle = NULL;
+    ui_lblHomeSubTitle = NULL;
+    ui_lblHomeAuxiliary = NULL;
 
 }

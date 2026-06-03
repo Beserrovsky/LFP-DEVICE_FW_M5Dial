@@ -14,7 +14,9 @@ extern "C" {
 extern void ui_Home_screen_init(void);
 extern void ui_Home_screen_destroy(void);
 extern lv_obj_t * ui_Home;
-extern lv_obj_t * ui_lblHomeNFC;
+extern lv_obj_t * ui_lblHomeTitle;
+extern lv_obj_t * ui_lblHomeSubTitle;
+extern lv_obj_t * ui_lblHomeAuxiliary;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus
