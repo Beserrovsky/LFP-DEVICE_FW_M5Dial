@@ -4,11 +4,14 @@
 AppState g_appState;
 
 AppState::AppState()
-    : currentQuestion(0), currentOption(0), nameLength(0) {
+    : currentScreen(SCREEN_HOME), tutorialStep(0),
+      currentQuestion(0), currentOption(0), nameLength(0),
+      waitOrClickIsSuccess(false), submissionPending(false), submissionSuccess(false) {
     for (int i = 0; i < MAX_QUESTIONS; i++) {
         savedOptions[i] = 0;
     }
     nameBuffer[0] = 0;
+    waitOrClickMessage[0] = 0;
 }
 
 AppState::~AppState() {
@@ -17,6 +20,22 @@ AppState::~AppState() {
 bool AppState::init() {
     reset();
     return true;
+}
+
+AppScreen AppState::getCurrentScreen() const {
+    return currentScreen;
+}
+
+void AppState::setCurrentScreen(AppScreen screen) {
+    currentScreen = screen;
+}
+
+uint8_t AppState::getTutorialStep() const {
+    return tutorialStep;
+}
+
+void AppState::setTutorialStep(uint8_t step) {
+    tutorialStep = step;
 }
 
 uint8_t AppState::getCurrentQuestion() const {
@@ -94,7 +113,46 @@ void AppState::setNameLength(uint8_t len) {
     }
 }
 
+bool AppState::getWaitOrClickIsSuccess() const {
+    return waitOrClickIsSuccess;
+}
+
+void AppState::setWaitOrClickIsSuccess(bool success) {
+    waitOrClickIsSuccess = success;
+}
+
+const char* AppState::getWaitOrClickMessage() const {
+    return waitOrClickMessage;
+}
+
+void AppState::setWaitOrClickMessage(const char* message) {
+    if (message) {
+        strncpy(waitOrClickMessage, message, MAX_ERROR_LENGTH - 1);
+        waitOrClickMessage[MAX_ERROR_LENGTH - 1] = 0;
+    } else {
+        waitOrClickMessage[0] = 0;
+    }
+}
+
+bool AppState::getSubmissionPending() const {
+    return submissionPending;
+}
+
+void AppState::setSubmissionPending(bool pending) {
+    submissionPending = pending;
+}
+
+bool AppState::getSubmissionSuccess() const {
+    return submissionSuccess;
+}
+
+void AppState::setSubmissionSuccess(bool success) {
+    submissionSuccess = success;
+}
+
 void AppState::reset() {
+    currentScreen = SCREEN_HOME;
+    tutorialStep = 0;
     currentQuestion = 0;
     currentOption = 0;
     for (int i = 0; i < MAX_QUESTIONS; i++) {
@@ -102,4 +160,8 @@ void AppState::reset() {
     }
     nameBuffer[0] = 0;
     nameLength = 0;
+    waitOrClickIsSuccess = false;
+    waitOrClickMessage[0] = 0;
+    submissionPending = false;
+    submissionSuccess = false;
 }
