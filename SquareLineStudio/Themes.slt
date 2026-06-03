@@ -1,0 +1,200 @@
+{
+  "deftheme": {
+    "name": "Default",
+    "properties": [
+      {
+        "nid": 1000804,
+        "strtype": "THEME_COLOR",
+        "strval": "Primary Red",
+        "intarray": [
+          215,
+          21,
+          0,
+          255
+        ],
+        "InheritedType": 0
+      },
+      {
+        "nid": 1000805,
+        "strtype": "THEME_COLOR",
+        "strval": "Dark Red",
+        "intarray": [
+          165,
+          18,
+          0,
+          255
+        ],
+        "InheritedType": 0
+      },
+      {
+        "nid": 1000806,
+        "strtype": "THEME_COLOR",
+        "strval": "Light Red",
+        "intarray": [
+          235,
+          23,
+          0,
+          255
+        ],
+        "InheritedType": 0
+      },
+      {
+        "nid": 1000807,
+        "strtype": "THEME_COLOR",
+        "strval": "Charcoal",
+        "intarray": [
+          34,
+          34,
+          34,
+          255
+        ],
+        "InheritedType": 0
+      },
+      {
+        "nid": 1000808,
+        "strtype": "THEME_COLOR",
+        "strval": "Light Gray",
+        "intarray": [
+          245,
+          245,
+          245,
+          255
+        ],
+        "InheritedType": 0
+      }
+    ]
+  },
+  "themes": [
+    {
+      "name": "Dark",
+      "properties": [
+        {
+          "nid": 1000804,
+          "strtype": "THEME_COLOR",
+          "strval": "Primary Red",
+          "intarray": [
+            215,
+            21,
+            0,
+            255
+          ],
+          "InheritedType": 0
+        },
+        {
+          "nid": 1000805,
+          "strtype": "THEME_COLOR",
+          "strval": "Dark Red",
+          "intarray": [
+            165,
+            18,
+            0,
+            255
+          ],
+          "InheritedType": 0
+        },
+        {
+          "nid": 1000806,
+          "strtype": "THEME_COLOR",
+          "strval": "Light Red",
+          "intarray": [
+            235,
+            23,
+            0,
+            255
+          ],
+          "InheritedType": 0
+        },
+        {
+          "nid": 1000807,
+          "strtype": "THEME_COLOR",
+          "strval": "Charcoal",
+          "intarray": [
+            34,
+            34,
+            34,
+            255
+          ],
+          "InheritedType": 0
+        },
+        {
+          "nid": 1000808,
+          "strtype": "THEME_COLOR",
+          "strval": "Light Gray",
+          "intarray": [
+            245,
+            245,
+            245,
+            255
+          ],
+          "InheritedType": 0
+        }
+      ]
+    },
+    {
+      "name": "Johnson",
+      "properties": [
+        {
+          "nid": 1000804,
+          "strtype": "THEME_COLOR",
+          "strval": "Primary Red",
+          "intarray": [
+            215,
+            21,
+            0,
+            255
+          ],
+          "InheritedType": 0
+        },
+        {
+          "nid": 1000805,
+          "strtype": "THEME_COLOR",
+          "strval": "Dark Red",
+          "intarray": [
+            165,
+            18,
+            0,
+            255
+          ],
+          "InheritedType": 0
+        },
+        {
+          "nid": 1000806,
+          "strtype": "THEME_COLOR",
+          "strval": "Light Red",
+          "intarray": [
+            235,
+            23,
+            0,
+            255
+          ],
+          "InheritedType": 0
+        },
+        {
+          "nid": 1000807,
+          "strtype": "THEME_COLOR",
+          "strval": "Charcoal",
+          "intarray": [
+            34,
+            34,
+            34,
+            255
+          ],
+          "InheritedType": 0
+        },
+        {
+          "nid": 1000808,
+          "strtype": "THEME_COLOR",
+          "strval": "Light Gray",
+          "intarray": [
+            245,
+            245,
+            245,
+            255
+          ],
+          "InheritedType": 0
+        }
+      ]
+    }
+  ],
+  "selected_theme": "Johnson"
+}
