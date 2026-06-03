@@ -1,191 +1,514 @@
-# M5Dial Embedded System — Project Context for Claude
+# M5Dial NFC Survey Firmware
 
+## Project Goal
 
-### NFC
+Firmware for the M5Stack Dial (ESP32-S3) used to collect survey responses through a rotary encoder interface.
 
-Must read UID and NDEF JSON object, have an interface to translate it.
+Main subsystems:
 
+- LVGL 8.4
+- SquareLine Studio generated UI
+- ESP-NOW communication
+- PN532 NFC reader
+- M5Dial encoder + button
+- Pepper's Ghost mirrored display mode
 
+The project follows a strict modular architecture.
 
-Claude:
-- Implementar biblioteca de NFC e testar
-- Implementar Maquina de estados alinhada com a experiência total, wrappers da UI nova (completa)
+Generated files must remain isolated inside:
 
-Final:
-- Debug ESP-NOW com sistema completo
+```text
+/lib/GeneratedUI
+```
 
-## 🎯 Goal
-
-This project is a modular embedded firmware for the **M5Stack Dial (ESP32-S3)**.
-
-It combines:
-
-- LVGL 8.4 UI (SquareLine-generated screens)
-- ESP-NOW communication (survey submission + ACK protocol)
-- PN532 NFC tag detection (I2C)
-- Rotary encoder input (M5Dial hardware)
-- Modular C++ architecture (PlatformIO)
-
-The system is still under active development and must be extended WITHOUT breaking existing working subsystems.
+Application logic must never be added to generated files.
 
 ---
 
-# 🧠 Current Architecture Status
+# Current Development Priority
 
-## ✅ Already working
+## Phase 1 (Current)
 
-### 1. LVGL Display System
-- LVGL 8.4 integrated via PlatformIO
-- Custom lv_conf.h is correctly loaded
-- M5Dial display driver working
-- UI rendered from SquareLine export (`ui/GeneratedUI`)
-- Encoder updates a single question screen
+Implement the complete UI flow described in:
 
-### 2. ESP-NOW (reference implementation exists)
-- Sender + ACK system already proven working in standalone sketch
-- Packet structure is defined and stable
-- Receiver MAC is fixed
-- ACK contains:
-  - device_id
-  - counter
-  - accepted flag
+```text
+/docs/ux-flow.md
+```
 
-### 3. M5Dial Hardware
-- Encoder works
-- Button works
-- Display works
-- Basic audio feedback works
+using the latest SquareLine export already available in:
 
----
+```text
+/lib/GeneratedUI
+```
 
-## ⚠️ Partially integrated
+Focus ONLY on:
 
-### ESP-NOW
-- Needs modularization into `ESPNowManager`
-- Must preserve:
-  - retry logic
-  - ACK sync
-  - packet structure
-  - peer registration
+- UIManager
+- AppState
+- Input handling
+- State machine
 
-### UI system
-- Only QUESTION screen is actively used
-- Splash / success / error screens are placeholders (stub or not implemented yet)
-- UIManager not fully integrated
+NFC and ESP-NOW may be temporarily mocked if necessary.
+
+### Goal
+
+Deliver a fully functional survey flow including:
+
+- Encoder navigation
+- Button interactions
+- Screen transitions
+- Tutorial flow
+- Question flow
+- Confirmation flow
+- Success/Error flow
+
+before integrating NFC.
 
 ---
 
-## ❌ Not yet integrated
+## Phase 2
 
-### NFC (PN532)
-- Working standalone in test sketch
-- Must be moved into `NFCManager`
-- Must NOT change logic during migration
+Implement `NFCManager` based on:
 
-Requirements:
-- `Wire.begin(13, 15)` MUST be preserved
-- Must expose:
-  - `bool hasNewTag()`
-  - `String getLastUID()`
+```text
+/reference/pn532_demo.ino
+```
+
+### Requirements
+
+Preserve existing PN532 behavior.
+
+Preserve I2C configuration:
+
+```cpp
+Wire.begin(13, 15);
+```
+
+Required capabilities:
+
+- Read UID
+- Read NDEF payload
+- Extract JSON object from NDEF
+- Validate identifier format
+- Provide translation interface
+
+Suggested API:
+
+```cpp
+bool hasNewTag();
+
+String getUID();
+
+String getNDEFPayload();
+
+bool isValidTag();
+
+String getValidationError();
+
+void clearDetection();
+```
 
 ---
 
-### AppState system
-- Not implemented yet
-- Intended for:
-  - storing survey progress
-  - selected options
-  - name buffer
-  - persistence (NVS later)
+## Phase 3
 
----
+Integrate ESP-NOW with the completed application flow.
 
-# 📦 Existing Modules (target architecture)
+Use the existing proven implementation as reference.
 
-## DisplayDriver
-- Handles LVGL flush callback
-- Handles mirror mode (Pepper’s Ghost effect)
-- Wraps M5Dial.Display
+Must preserve:
 
-Interface:
-- init()
-- flush()
-- setMirrorEnabled()
-
----
-
-## ESPNowManager (TO BE COMPLETED)
-
-Responsible for:
-- ESP-NOW initialization
-- peer registration
-- sending SurveyPacket
+- Packet structure
+- Retry logic
 - ACK handling
-- retry logic
-
-Must expose:
-
-- bool begin()
-- bool sendSurvey(const SurveyPacket&)
-- bool isAckReceived()
-- bool isAckAccepted()
-
-Must be headless (NO UI DEPENDENCIES)
+- Peer registration
 
 ---
 
-## NFCManager (TO BE CREATED / REFACTORED)
+# Architecture
 
-Wraps PN532 (Adafruit library)
+The application is composed of five modules:
 
-Constraints:
-- Keep Wire.begin(13,15)
-- Do NOT modify PN532 logic
+```text
+DisplayDriver
+UIManager
+AppState
+NFCManager
+ESPNowManager
+```
 
-Must expose:
-- bool hasNewTag()
-- String getLastUID()
+Dependencies:
+
+```text
+AppState
+    ↓
+UIManager
+
+NFCManager ─┐
+            ├──> AppState
+ESPNowManager┘
+
+DisplayDriver
+    ↓
+UIManager
+```
+
+## Rules
+
+- UIManager cannot contain NFC logic.
+- UIManager cannot contain ESP-NOW logic.
+- NFCManager cannot manipulate LVGL objects.
+- ESPNowManager cannot manipulate LVGL objects.
+- GeneratedUI must never be edited manually.
+- Business logic belongs in AppState and application controllers.
 
 ---
 
-## UIManager (NOT COMPLETE YET)
+# UI Flow
 
-Will later handle:
-- switching screens
-- updating LVGL labels
-- mapping AppState → UI
+Source of truth:
 
-DO NOT implement ESP-NOW or NFC logic here.
+```text
+/docs/ux-flow.md
+```
 
----
-
-## AppState (NOT IMPLEMENTED YET)
-
-Will store:
-- currentQuestion index
-- selectedOptions[]
-- nameBuffer
-- survey state
-- persistence (NVS later)
+When implementing screens, always follow `/docs/ux-flow.md` exactly.
 
 ---
 
-# 📊 Data Model
+## Home Screen
 
-## SurveyPacket (DO NOT MODIFY STRUCTURE)
+Wait for:
+
+- NFC tag
+- OR 5 button clicks (debug mode)
+
+Invalid NFC:
+
+```text
+Error!
+
+{message}
+```
+
+Navigate to WaitOrClick screen.
+
+---
+
+## Tutorial
+
+Uses the Questions screen.
+
+Two-step tutorial:
+
+### Step 1
+
+```text
+Type: Tutorial
+Progress: 0
+Numeration: 1/2
+Instruction:
+rotate the dial until OK
+```
+
+Available options:
+
+```text
+X -> OK
+```
+
+Once user rotates:
+
+```text
+click once to advance
+```
+
+If user rotates back:
+
+```text
+rotate the dial until OK
+```
+
+### Step 2
+
+```text
+Type: Tutorial
+Progress: 1
+Numeration: 2/2
+Instruction:
+click twice to go back
+```
+
+Available options:
+
+```text
+X X X X X
+```
+
+After double click:
+
+```text
+Progress: 0
+Numeration: 1/2
+Instruction:
+click once again to end tutorial
+```
+
+Available options:
+
+```text
+OK
+```
+
+---
+
+## Questions
+
+After tutorial completion:
+
+```text
+Type: Question
+```
+
+There are 4 survey questions.
+
+Questions use the same screen and controls as the tutorial.
+
+### Progress
+
+```text
+Question 1 -> 1/5
+Question 2 -> 2/5
+Question 3 -> 3/5
+Question 4 -> 4/5
+Confirmation -> 5/5
+```
+
+Question text is displayed in:
+
+```text
+lblQuestionsInstruction
+```
+
+Maximum length:
+
+```text
+37 characters
+```
+
+Example:
+
+```text
+How would you rate J&J on innovation?
+```
+
+---
+
+## Confirm Screen
+
+Reached after question 4.
+
+### Single click
+
+Submit survey.
+
+Navigate to WaitOrClick while waiting for response.
+
+### Double click
+
+Return to question 4.
+
+---
+
+## WaitOrClick Screen
+
+### Success
+
+```text
+Thanks!
+
+Find yourself at the bigger screen.
+```
+
+Timer expiration OR click:
+
+```text
+Home
+```
+
+### Error
+
+```text
+Error!
+
+{message}
+```
+
+Message length:
+
+```text
+Maximum 37 characters
+```
+
+Timer expiration OR click:
+
+```text
+Confirm Screen
+```
+
+---
+
+# Long Press Actions
+
+Available globally from any screen.
+
+---
+
+## 2 Seconds
+
+Behavior:
+
+- Double beep
+- Immediately toggle display mirror mode
+
+No button release required.
+
+Equivalent action:
+
+```cpp
+g_displayDriver.setMirrorEnabled(...);
+```
+
+---
+
+## 5 Seconds
+
+Behavior:
+
+- Triple beep
+- Immediately restart device
+
+No button release required.
+
+Equivalent action:
+
+```cpp
+ESP.restart();
+```
+
+---
+
+# Current UI Objects
+
+The latest SquareLine export is considered authoritative.
+
+Claude should inspect the generated UI and create wrappers inside UIManager.
+
+Do NOT access generated LVGL objects directly throughout the application.
+
+Preferred pattern:
+
+```cpp
+g_uiManager.showHome();
+
+g_uiManager.showQuestion();
+
+g_uiManager.showConfirm();
+
+g_uiManager.showWaitOrClick();
+
+g_uiManager.updateQuestion(
+    title,
+    instruction,
+    option,
+    progress
+);
+```
+
+Only UIManager should know generated object names.
+
+---
+
+# AppState Responsibilities
+
+AppState is the single source of truth.
+
+Suggested stored state:
+
+```cpp
+currentScreen
+
+currentQuestion
+
+currentOption
+
+tutorialStep
+
+surveyAnswers[4]
+
+nfcUID
+
+nfcPayload
+
+submissionPending
+
+submissionSuccess
+```
+
+UI should always render from AppState.
+
+Avoid duplicated state.
+
+---
+
+# SurveyPacket
+
+DO NOT MODIFY.
 
 ```cpp
 struct SurveyPacket {
-  uint8_t packetType;
-  uint8_t device_id;
-  uint32_t counter;
-  uint32_t timestamp_ms;
+    uint8_t packetType;
+    uint8_t device_id;
+    uint32_t counter;
+    uint32_t timestamp_ms;
 
-  int innovation;
-  int satisfactionIndex;
-  int nps;
+    int innovation;
+    int satisfactionIndex;
+    int nps;
 
-  char fishType[16];
-  char fishColour[16];
-  char name[12];
+    char fishType[16];
+    char fishColour[16];
+    char name[12];
 };
+```
+
+---
+
+# Expectations for Claude
+
+When implementing:
+
+1. Prefer small commits.
+2. Build after every subsystem migration.
+3. Keep modules independent.
+4. Preserve existing working code whenever possible.
+5. Do not edit files inside `/lib/GeneratedUI`.
+6. Follow `/docs/ux-flow.md` over assumptions.
+7. Focus first on the complete UI state machine.
+8. NFC integration comes only after the UI flow is fully operational.
+9. ESP-NOW integration comes after NFC integration.
+10. If a generated UI object is needed, wrap it inside UIManager rather than exposing it globally.
+
+---
+
+# Immediate Task
+
+Current objective:
+
+1. Inspect the latest SquareLine export in `/lib/GeneratedUI`.
+2. Create UIManager wrappers for all required screens and controls.
+3. Implement AppState.
+4. Implement the full UX flow from `/docs/ux-flow.md`.
+5. Implement encoder navigation and button interactions.
+6. Verify the complete survey flow without NFC.
+7. Only after the UI flow is working, begin NFCManager implementation based on `/reference/pn532_demo.ino`.

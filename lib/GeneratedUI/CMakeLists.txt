@@ -1,0 +1,11 @@
+SET(SOURCES ui_Questions.c
+    ui_Home.c
+    ui_WaitOrClick.c
+    ui_Confirm.c
+    ui_theme_manager.c
+    ui_themes.c
+    ui.c
+    ui_comp_hook.c
+    ui_helpers.c)
+
+add_library(ui ${SOURCES})

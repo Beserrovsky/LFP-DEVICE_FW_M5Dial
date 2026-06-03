@@ -3,15 +3,23 @@
 // LVGL version: 8.3.11
 // Project name: LFP-DEVICE_UI_SquareLineStudio
 
-#ifndef _UI_EVENTS_H
-#define _UI_EVENTS_H
+#ifndef UI_HOME_H
+#define UI_HOME_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// SCREEN: ui_Home
+extern void ui_Home_screen_init(void);
+extern void ui_Home_screen_destroy(void);
+extern lv_obj_t * ui_Home;
+extern lv_obj_t * ui_lblHomeNFC;
+// CUSTOM VARIABLES
 
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
 
 #endif
+

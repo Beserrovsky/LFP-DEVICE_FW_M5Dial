@@ -228,7 +228,7 @@ main.cpp
 
 ## Design Principles
 
-- Keep generated SquareLine files isolated in `/ui`
+- Keep generated SquareLine files isolated in `/lib/GeneratedUI`
 - Do not place application logic inside generated files
 - Maintain strict separation between UI, NFC, communication, and state
 - Preserve behavior from the reference sketches during migration
