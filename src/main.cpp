@@ -13,6 +13,9 @@ extern AppState g_appState;
 extern NFCManager g_nfcManager;
 extern ESPNowManager g_espNowManager;
 
+// ── Forward declarations ──────────────────────────────────────────────────────
+static void playSuccessJingle();
+
 // ── Home screen state (declared early — referenced by goHome()) ───────────────
 static uint8_t  homeClickCount = 0;
 static bool     nfcTagShowing  = false;
@@ -365,6 +368,7 @@ static void handleConfirm(uint8_t clicks, int /*encoderDelta*/) {
         Serial.printf("[ESP-NOW] Survey send: %s\n", ok ? "SUCCESS" : "FAILED");
 
         if (ok) {
+            playSuccessJingle();
             goWaitOrClick(true, MSG_SUCCESS);
         } else {
             goWaitOrClick(false, MSG_SEND_FAILED);
@@ -401,6 +405,16 @@ static void handleWaitOrClick(uint8_t clicks, int /*encoderDelta*/) {
 }
 
 // ── Long press tracking ───────────────────────────────────────────────────────
+
+// ── Audio helpers ─────────────────────────────────────────────────────────────
+
+static void playSuccessJingle() {
+    // Ascending C major arpeggio: C5 – E5 – G5 – C6
+    M5Dial.Speaker.tone(523,  120); delay(130);
+    M5Dial.Speaker.tone(659,  120); delay(130);
+    M5Dial.Speaker.tone(784,  120); delay(130);
+    M5Dial.Speaker.tone(1047, 350); delay(360);
+}
 
 static bool mirror2sFired = false;
 
