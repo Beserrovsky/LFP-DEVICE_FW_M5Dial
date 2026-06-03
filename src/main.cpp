@@ -68,7 +68,7 @@ static void startTutorial() {
     g_appState.setTutorialStep(0);
     g_appState.setCurrentOption(TUTORIAL_STEP1_START);
     g_appState.setCurrentScreen(SCREEN_TUTORIAL);
-    refreshTutorialStep1("rotate the dial until OK", TUTORIAL_STEP1_START);
+    refreshTutorialStep1("Rotate the dial until OK.", TUTORIAL_STEP1_START);
     Serial.println("[STATE] → Tutorial step 0");
 }
 
@@ -191,10 +191,10 @@ static void handleTutorial(uint8_t clicks, int encoderDelta) {
 
             if (opt == TUTORIAL_STEP1_OK_IDX) {
                 g_appState.setTutorialStep(1);
-                refreshTutorialStep1("click once to advance", opt);
+                refreshTutorialStep1("Click once to advance.", opt);
                 Serial.println("[Tutorial] reached OK");
             } else {
-                refreshTutorialStep1("rotate the dial until OK", opt);
+                refreshTutorialStep1("Rotate the dial until OK.", opt);
             }
         }
     } else if (step == 1) {
@@ -203,14 +203,14 @@ static void handleTutorial(uint8_t clicks, int encoderDelta) {
             // scroll back off OK
             g_appState.setCurrentOption(TUTORIAL_STEP1_START);
             g_appState.setTutorialStep(0);
-            refreshTutorialStep1("rotate the dial until OK", TUTORIAL_STEP1_START);
+            refreshTutorialStep1("Rotate the dial until OK.", TUTORIAL_STEP1_START);
         }
         if (clicks == 1) {
             // advance to Tutorial step 2
             g_appState.setTutorialStep(2);
             g_appState.setCurrentOption(2); // middle of 5 X's
             g_uiManager.showQuestion(
-                "Tutorial", "2/2", "click twice to go back", 1,
+                "Tutorial", "2/2", "Click twice to go back.", 1,
                 "X", "X", "X"
             );
             Serial.println("[Tutorial] → step 2");
@@ -225,7 +225,7 @@ static void handleTutorial(uint8_t clicks, int encoderDelta) {
             opt = (uint8_t)newOpt;
 
             g_uiManager.showQuestion(
-                "Tutorial", "2/2", "click twice to go back", 1,
+                "Tutorial", "2/2", "Click twice to go back.", 1,
                 optionLabel(TUTORIAL_STEP2_OPTIONS, TUTORIAL_STEP2_NUM, (int)opt),
                 optionLabel(TUTORIAL_STEP2_OPTIONS, TUTORIAL_STEP2_NUM, (int)opt - 1),
                 optionLabel(TUTORIAL_STEP2_OPTIONS, TUTORIAL_STEP2_NUM, (int)opt + 1)
@@ -236,7 +236,7 @@ static void handleTutorial(uint8_t clicks, int encoderDelta) {
             g_appState.setTutorialStep(3);
             g_appState.setCurrentOption(TUTORIAL_STEP3_START);
             g_uiManager.showQuestion(
-                "Tutorial", "1/2", "rotate the dial to OK", 0,
+                "Tutorial", "1/2", "Rotate the dial to OK.", 0,
                 optionLabel(TUTORIAL_STEP3_OPTIONS, TUTORIAL_STEP3_NUM, TUTORIAL_STEP3_START),
                 optionLabel(TUTORIAL_STEP3_OPTIONS, TUTORIAL_STEP3_NUM, (int)TUTORIAL_STEP3_START - 1),
                 optionLabel(TUTORIAL_STEP3_OPTIONS, TUTORIAL_STEP3_NUM, (int)TUTORIAL_STEP3_START + 1)
@@ -244,7 +244,7 @@ static void handleTutorial(uint8_t clicks, int encoderDelta) {
             Serial.println("[Tutorial] → step 3 (T1 reversed, OK on left)");
         }
     } else if (step == 3) {
-        // T1_reversed: user must rotate LEFT to reach OK (index 0)
+        // T1_reversed: rotate LEFT to reach OK (index 0), then click to advance
         if (encoderDelta != 0) {
             int newOpt = (int)opt + (encoderDelta > 0 ? 1 : -1);
             if (newOpt < 0) newOpt = 0;
@@ -253,21 +253,26 @@ static void handleTutorial(uint8_t clicks, int encoderDelta) {
             opt = (uint8_t)newOpt;
 
             if (opt == TUTORIAL_STEP3_OK_IDX) {
-                // Reached OK on the left → advance to T2_ready
-                g_appState.setTutorialStep(4);
                 g_uiManager.showQuestion(
-                    "Tutorial", "2/2", "You are ready. click once to proceed", 1,
-                    "GO", "", ""
+                    "Tutorial", "1/2", "Click once to advance.", 0,
+                    "OK", "", ""
                 );
-                Serial.println("[Tutorial] → step 4 (T2 ready)");
             } else {
                 g_uiManager.showQuestion(
-                    "Tutorial", "1/2", "rotate the dial to OK", 0,
+                    "Tutorial", "1/2", "Rotate the dial to OK.", 0,
                     optionLabel(TUTORIAL_STEP3_OPTIONS, TUTORIAL_STEP3_NUM, (int)opt),
                     optionLabel(TUTORIAL_STEP3_OPTIONS, TUTORIAL_STEP3_NUM, (int)opt - 1),
                     optionLabel(TUTORIAL_STEP3_OPTIONS, TUTORIAL_STEP3_NUM, (int)opt + 1)
                 );
             }
+        }
+        if (clicks == 1 && opt == TUTORIAL_STEP3_OK_IDX) {
+            g_appState.setTutorialStep(4);
+            g_uiManager.showQuestion(
+                "Tutorial", "2/2", "You are ready. Click once to proceed.", 1,
+                "GO", "", ""
+            );
+            Serial.println("[Tutorial] → step 4 (T2 ready)");
         }
     } else if (step == 4) {
         // T2_ready: single click ends tutorial

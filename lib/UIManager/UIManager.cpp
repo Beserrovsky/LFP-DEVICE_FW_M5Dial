@@ -43,6 +43,7 @@ bool UIManager::init() {
 void UIManager::showHome() {
     currentState = UI_STATE_HOME;
     lv_disp_load_scr(ui_Home);
+    lv_label_set_text(ui_lblHomeNFC, "Id with NFC\nor\nClick 5 times");
 }
 
 void UIManager::showQuestion(const char* type, const char* numeration,
