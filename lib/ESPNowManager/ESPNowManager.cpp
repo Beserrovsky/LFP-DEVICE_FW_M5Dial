@@ -5,6 +5,7 @@
 #include <esp_event.h>
 #include <nvs_flash.h>
 #include <freertos/portmacro.h>
+#include <Arduino.h>
 
 const uint8_t ESPNowManager::RECEIVER_MAC[6] = {
     0xB0, 0xA7, 0x32, 0x14, 0xFD, 0xFC
