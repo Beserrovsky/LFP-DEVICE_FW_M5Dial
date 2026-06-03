@@ -15,6 +15,8 @@ void setup() {
     g_displayDriver.init();
     g_uiManager.init();
     g_appState.init();
+
+    
 }
 
 void loop() {
