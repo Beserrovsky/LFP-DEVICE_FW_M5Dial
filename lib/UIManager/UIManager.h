@@ -4,12 +4,11 @@
 #include <stddef.h>
 
 enum UIState {
-    UI_STATE_SPLASH,
+    UI_STATE_HOME,
+    UI_STATE_TUTORIAL,
     UI_STATE_QUESTION,
-    UI_STATE_TEXT_ENTRY,
-    UI_STATE_SENDING,
-    UI_STATE_SUCCESS,
-    UI_STATE_ERROR
+    UI_STATE_CONFIRM,
+    UI_STATE_WAIT_OR_CLICK
 };
 
 class UIManager {
@@ -19,19 +18,15 @@ public:
 
     bool init();
 
-    void showSplash();
-    void showQuestion(uint8_t questionNum, uint8_t totalQuestions,
-                      const char* text, const char* currentOption,
-                      const char* prevOption, const char* nextOption);
-    void showTextEntry(const char* currentName);
-    void showSending();
-    void showSuccess();
-    void showError(const char* errorMessage);
+    void showHome();
 
-    void setCurrentOption(int value);
-    void setPreviousOption(int value);
-    void setNextOption(int value);
-    void updateOptionsDisplay(int currentValue);
+    void showQuestion(const char* type, const char* numeration,
+                      const char* instruction, int progress,
+                      const char* current, const char* prev, const char* next);
+
+    void showConfirm();
+
+    void showWaitOrClick(const char* message);
 
     UIState getCurrentState() const;
 
