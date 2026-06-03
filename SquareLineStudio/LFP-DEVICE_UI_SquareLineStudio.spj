@@ -1615,7 +1615,7 @@
               {
                 "nid": 10,
                 "strtype": "OBJECT/Name",
-                "strval": "lblHomeAuxiliaury",
+                "strval": "lblHomeSubTitle",
                 "InheritedType": 10
               },
               {
@@ -1781,7 +1781,7 @@
               {
                 "nid": 10,
                 "strtype": "OBJECT/Name",
-                "strval": "lblQuestionsType2",
+                "strval": "lblHomeAuxiliary",
                 "InheritedType": 10
               },
               {
@@ -5343,7 +5343,7 @@
     "rotation": 0,
     "offset_x": 0,
     "offset_y": 0,
-    "shape": "CIRCLE",
+    "shape": "RECTANGLE",
     "multilang": "DISABLE",
     "description": "",
     "board": "Eclipse with SDL for development on PC",
@@ -5363,7 +5363,7 @@
     "separate_screen_save": false,
     "hierarchy_state_save": false,
     "reverse_event_order": false,
-    "backup_cnt": 42,
+    "backup_cnt": 43,
     "autosave_cnt": 0,
     "group_color_cnt": 1,
     "imagebytearrayprefix": "",
