@@ -18,9 +18,24 @@ static const char* optionLabel(const char* const* options, uint8_t numOptions, i
     return options[idx];
 }
 
+// Side option label: shows "..." when the slot is occupied but the question
+// uses long names that would overflow the side slots (e.g. the last question).
+static const char* sideOptionLabel(uint8_t qIdx, const char* const* options, uint8_t numOptions, int idx) {
+    if (idx < 0 || idx >= (int)numOptions) return "";
+    if (qIdx == NUM_QUESTIONS - 1) return "...";
+    return options[idx];
+}
+
 // ── Tutorial UI refresh ───────────────────────────────────────────────────────
 
 static const uint8_t TUTORIAL_STEP1_NUM = 2; // ["X", "OK"]
+
+// Step 3 (T1_reversed): OK is to the LEFT — user must rotate left to reach it.
+// List: ["OK", "X"]  index 0 = OK (left), index 1 = X (start)
+static const char* const TUTORIAL_STEP3_OPTIONS[] = { "OK", "X" };
+static const uint8_t TUTORIAL_STEP3_NUM     = 2;
+static const uint8_t TUTORIAL_STEP3_START   = 1;   // start on X
+static const uint8_t TUTORIAL_STEP3_OK_IDX  = 0;   // OK is at index 0 (left)
 
 static void refreshTutorialStep1(const char* instruction, uint8_t optIdx) {
     g_uiManager.showQuestion(
@@ -60,7 +75,7 @@ static void startQuestion(uint8_t qIdx) {
         "Question", num, q.text, (int)(qIdx + 1),
         optionLabel(q.options, q.numOptions, 0),
         "",
-        optionLabel(q.options, q.numOptions, 1)
+        sideOptionLabel(qIdx, q.options, q.numOptions, 1)
     );
     Serial.printf("[STATE] → Question %d\n", qIdx + 1);
 }
@@ -77,9 +92,9 @@ static void goBackToQuestion(uint8_t qIdx) {
     snprintf(num, sizeof(num), "%d/5", qIdx + 1);
     g_uiManager.showQuestion(
         "Question", num, q.text, (int)(qIdx + 1),
-        optionLabel(q.options, q.numOptions, (int)savedOpt),
-        optionLabel(q.options, q.numOptions, (int)savedOpt - 1),
-        optionLabel(q.options, q.numOptions, (int)savedOpt + 1)
+        optionLabel(    q.options, q.numOptions, (int)savedOpt),
+        sideOptionLabel(qIdx, q.options, q.numOptions, (int)savedOpt - 1),
+        sideOptionLabel(qIdx, q.options, q.numOptions, (int)savedOpt + 1)
     );
     Serial.printf("[STATE] → Back to Question %d (option %d)\n", qIdx + 1, savedOpt);
 }
@@ -173,17 +188,45 @@ static void handleTutorial(uint8_t clicks, int encoderDelta) {
             );
         }
         if (clicks == 2) {
-            // return to T1 confirmed
+            // Return to T1 reversed: OK is now on the LEFT
             g_appState.setTutorialStep(3);
-            g_appState.setCurrentOption(TUTORIAL_STEP1_OK_IDX);
+            g_appState.setCurrentOption(TUTORIAL_STEP3_START);
             g_uiManager.showQuestion(
-                "Tutorial", "1/2", "click once again to end tutorial", 0,
-                "OK", "", ""
+                "Tutorial", "1/2", "rotate the dial to OK", 0,
+                optionLabel(TUTORIAL_STEP3_OPTIONS, TUTORIAL_STEP3_NUM, TUTORIAL_STEP3_START),
+                optionLabel(TUTORIAL_STEP3_OPTIONS, TUTORIAL_STEP3_NUM, (int)TUTORIAL_STEP3_START - 1),
+                optionLabel(TUTORIAL_STEP3_OPTIONS, TUTORIAL_STEP3_NUM, (int)TUTORIAL_STEP3_START + 1)
             );
-            Serial.println("[Tutorial] → step 3 (T1 confirmed)");
+            Serial.println("[Tutorial] → step 3 (T1 reversed, OK on left)");
         }
     } else if (step == 3) {
-        // T1_confirmed: 1 click ends tutorial
+        // T1_reversed: user must rotate LEFT to reach OK (index 0)
+        if (encoderDelta != 0) {
+            int newOpt = (int)opt + (encoderDelta > 0 ? 1 : -1);
+            if (newOpt < 0) newOpt = 0;
+            if (newOpt >= (int)TUTORIAL_STEP3_NUM) newOpt = TUTORIAL_STEP3_NUM - 1;
+            g_appState.setCurrentOption((uint8_t)newOpt);
+            opt = (uint8_t)newOpt;
+
+            if (opt == TUTORIAL_STEP3_OK_IDX) {
+                // Reached OK on the left → advance to T2_ready
+                g_appState.setTutorialStep(4);
+                g_uiManager.showQuestion(
+                    "Tutorial", "2/2", "you are ready, click once to proceed", 1,
+                    "GO", "", ""
+                );
+                Serial.println("[Tutorial] → step 4 (T2 ready)");
+            } else {
+                g_uiManager.showQuestion(
+                    "Tutorial", "1/2", "rotate the dial to OK", 0,
+                    optionLabel(TUTORIAL_STEP3_OPTIONS, TUTORIAL_STEP3_NUM, (int)opt),
+                    optionLabel(TUTORIAL_STEP3_OPTIONS, TUTORIAL_STEP3_NUM, (int)opt - 1),
+                    optionLabel(TUTORIAL_STEP3_OPTIONS, TUTORIAL_STEP3_NUM, (int)opt + 1)
+                );
+            }
+        }
+    } else if (step == 4) {
+        // T2_ready: single click ends tutorial
         if (clicks == 1) {
             M5Dial.Speaker.tone(2000, 200);
             startQuestion(0);
@@ -207,9 +250,9 @@ static void handleQuestion(uint8_t clicks, int encoderDelta) {
         snprintf(num, sizeof(num), "%d/5", qIdx + 1);
         g_uiManager.showQuestion(
             "Question", num, q.text, (int)(qIdx + 1),
-            optionLabel(q.options, q.numOptions, (int)opt),
-            optionLabel(q.options, q.numOptions, (int)opt - 1),
-            optionLabel(q.options, q.numOptions, (int)opt + 1)
+            optionLabel(    q.options, q.numOptions, (int)opt),
+            sideOptionLabel(qIdx, q.options, q.numOptions, (int)opt - 1),
+            sideOptionLabel(qIdx, q.options, q.numOptions, (int)opt + 1)
         );
     }
 

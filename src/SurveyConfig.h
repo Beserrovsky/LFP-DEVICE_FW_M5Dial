@@ -20,21 +20,18 @@ static const uint8_t TUTORIAL_STEP1_OK_IDX  = 1;   // OK is at index 1
 static const char* const TUTORIAL_STEP2_OPTIONS[] = { "X", "X", "X", "X", "X" };
 static const uint8_t TUTORIAL_STEP2_NUM     = 5;
 
-// Step 3 (T1 confirmed): single "OK" option
-static const char* const TUTORIAL_STEP3_OPTIONS[] = { "OK" };
-
 // ── Survey questions ─────────────────────────────────────────────────────────
 
 static const char* const Q1_OPTIONS[] = { "1", "2", "3", "4", "5" };
-static const char* const Q2_OPTIONS[] = { "Very Low", "Low", "Neutral", "High", "Very High" };
+static const char* const Q2_OPTIONS[] = { "Yes", "No" };
 static const char* const Q3_OPTIONS[] = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" };
-static const char* const Q4_OPTIONS[] = { "Tetra", "Betta", "Gourami", "Shark", "Crab" };
+static const char* const Q4_OPTIONS[] = { "Junior", "Vitoria", "Sergio" };
 
 static const QuestionDef QUESTIONS[4] = {
     { "How would you rate J&J on innovation?", Q1_OPTIONS, 5  },
-    { "Happy with J&J interactions?",          Q2_OPTIONS, 5  },
+    { "Happy with J&J interactions?",          Q2_OPTIONS, 2  },
     { "Recommend J&J to a colleague?",         Q3_OPTIONS, 11 },
-    { "Pick your fish type!",                  Q4_OPTIONS, 5  },
+    { "Best J&J Employee",                     Q4_OPTIONS, 3  },
 };
 
 static const uint8_t NUM_QUESTIONS = 4;
