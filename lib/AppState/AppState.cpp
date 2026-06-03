@@ -10,7 +10,8 @@ AppState::AppState()
     for (int i = 0; i < MAX_QUESTIONS; i++) {
         savedOptions[i] = 0;
     }
-    nameBuffer[0] = 0;
+    nameBuffer[0]       = 0;
+    identifierBuffer[0] = 0;
     waitOrClickMessage[0] = 0;
 }
 
@@ -113,6 +114,19 @@ void AppState::setNameLength(uint8_t len) {
     }
 }
 
+const char* AppState::getIdentifierBuffer() const {
+    return identifierBuffer;
+}
+
+void AppState::setIdentifierBuffer(const char* id) {
+    if (id) {
+        strncpy(identifierBuffer, id, MAX_ID_LENGTH - 1);
+        identifierBuffer[MAX_ID_LENGTH - 1] = 0;
+    } else {
+        identifierBuffer[0] = 0;
+    }
+}
+
 bool AppState::getWaitOrClickIsSuccess() const {
     return waitOrClickIsSuccess;
 }
@@ -158,7 +172,8 @@ void AppState::reset() {
     for (int i = 0; i < MAX_QUESTIONS; i++) {
         savedOptions[i] = 0;
     }
-    nameBuffer[0] = 0;
+    nameBuffer[0]       = 0;
+    identifierBuffer[0] = 0;
     nameLength = 0;
     waitOrClickIsSuccess = false;
     waitOrClickMessage[0] = 0;

@@ -10,17 +10,23 @@ enum PacketType : uint8_t {
 };
 
 typedef struct __attribute__((packed)) {
-    uint8_t packetType;
-    uint8_t device_id;
-    uint32_t counter;
-    uint32_t timestamp_ms;
-    int innovation;
-    int satisfactionIndex;
-    int nps;
-    char fishType[16];
-    char fishColour[16];
-    char name[12];
+    // ── Transport header ────────────────────────────────────────────────────
+    uint8_t  packetType;       // Always 2 (PACKET_SUBMISSION)
+    uint8_t  device_id;        // Sending device ID (currently 3)
+    uint32_t counter;          // Wrapping sequence number — used for deduplication
+    uint32_t timestamp_ms;     // Device uptime in ms at send time
+
+    // ── Respondent identity (from NFC tag) ──────────────────────────────────
+    char name[16];             // First name  e.g. "Felipe"
+    char identifier[16];       // Unique ID: phone number or employee ID e.g. "11987654321"
+
+    // ── Survey answers ───────────────────────────────────────────────────────
+    uint8_t  innovation;       // Q1: 1–5  (1 = lowest, 5 = highest)
+    uint8_t  satisfaction;     // Q2: 1 = Yes, 0 = No
+    uint8_t  nps;              // Q3: 0–10 (NPS score, direct value)
+    char     bestEmployee[12]; // Q4: "Junior" | "Vitoria" | "Sergio"
 } SurveyPacket;
+// Total: 1+1+4+4 + 16+16 + 1+1+1+12 = 57 bytes (packed)
 
 typedef struct __attribute__((packed)) {
     uint8_t packetType;

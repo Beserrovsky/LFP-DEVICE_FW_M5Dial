@@ -8,10 +8,11 @@ NFCManager g_nfcManager;
 NFCManager::NFCManager()
     : _nfc(255, 255, &Wire),
       _hasTag(false), _isValid(false) {
-    _uid[0]             = 0;
-    _ndefPayload[0]     = 0;
-    _validationError[0] = 0;
-    _extractedName[0]   = 0;
+    _uid[0]                 = 0;
+    _ndefPayload[0]         = 0;
+    _validationError[0]     = 0;
+    _extractedName[0]       = 0;
+    _extractedIdentifier[0] = 0;
 }
 
 NFCManager::~NFCManager() {}
@@ -51,9 +52,10 @@ void NFCManager::update() {
     }
     Serial.printf("[NFC] Tag: %s\n", _uid);
 
-    _ndefPayload[0]     = 0;
-    _validationError[0] = 0;
-    _extractedName[0]   = 0;
+    _ndefPayload[0]         = 0;
+    _validationError[0]     = 0;
+    _extractedName[0]       = 0;
+    _extractedIdentifier[0] = 0;
 
     _isValid = readNDEF(uidLen) && parseAndValidate();
     _hasTag  = true;
@@ -151,44 +153,47 @@ bool NFCManager::readNDEF(uint8_t /*uidLength*/) {
     return false;
 }
 
-bool NFCManager::parseAndValidate() {
-    const char* key = strstr(_ndefPayload, "\"name\"");
-    if (!key) {
-        strncpy(_validationError, "Missing name field", sizeof(_validationError) - 1);
-        return false;
-    }
-
-    const char* colon = strchr(key + 6, ':');
-    if (!colon) {
-        strncpy(_validationError, "Malformed name field", sizeof(_validationError) - 1);
-        return false;
-    }
-
+// Extract a JSON string value for the given key. Returns true and fills buf on success.
+static bool extractJsonString(const char* json, const char* key,
+                               char* buf, size_t bufSize) {
+    const char* k = strstr(json, key);
+    if (!k) return false;
+    const char* colon = strchr(k + strlen(key), ':');
+    if (!colon) return false;
     const char* valStart = strchr(colon + 1, '"');
-    if (!valStart) {
-        strncpy(_validationError, "Malformed name value", sizeof(_validationError) - 1);
-        return false;
-    }
+    if (!valStart) return false;
     valStart++;
-
     const char* valEnd = strchr(valStart, '"');
-    if (!valEnd) {
-        strncpy(_validationError, "Unterminated name value", sizeof(_validationError) - 1);
+    if (!valEnd) return false;
+    size_t len = (size_t)(valEnd - valStart);
+    if (len == 0 || len >= bufSize) return false;
+    strncpy(buf, valStart, len);
+    buf[len] = 0;
+    return true;
+}
+
+bool NFCManager::parseAndValidate() {
+    // "name" is required
+    if (!extractJsonString(_ndefPayload, "\"name\"", _extractedName, sizeof(_extractedName))) {
+        // Check why it failed (empty vs missing vs too long)
+        const char* k = strstr(_ndefPayload, "\"name\"");
+        if (!k) {
+            strncpy(_validationError, "Missing name field", sizeof(_validationError) - 1);
+        } else {
+            strncpy(_validationError, "Invalid name value", sizeof(_validationError) - 1);
+        }
         return false;
     }
-
-    size_t len = (size_t)(valEnd - valStart);
-    if (len == 0) {
+    if (_extractedName[0] == 0) {
         strncpy(_validationError, "Name is empty", sizeof(_validationError) - 1);
         return false;
     }
-    if (len > 11) {
-        strncpy(_validationError, "Name too long (max 11)", sizeof(_validationError) - 1);
-        return false;
-    }
 
-    strncpy(_extractedName, valStart, len);
-    _extractedName[len] = 0;
+    // "id" is optional — silently empty if absent or malformed
+    _extractedIdentifier[0] = 0;
+    extractJsonString(_ndefPayload, "\"id\"", _extractedIdentifier, sizeof(_extractedIdentifier));
+
+    Serial.printf("[NFC] name='%s' id='%s'\n", _extractedName, _extractedIdentifier);
     return true;
 }
 
@@ -254,13 +259,15 @@ String NFCManager::getUID() const         { return String(_uid); }
 String NFCManager::getNDEFPayload() const { return String(_ndefPayload); }
 bool NFCManager::isValidTag() const       { return _isValid; }
 String NFCManager::getValidationError() const { return String(_validationError); }
-const char* NFCManager::getExtractedName() const { return _extractedName; }
+const char* NFCManager::getExtractedName()       const { return _extractedName; }
+const char* NFCManager::getExtractedIdentifier() const { return _extractedIdentifier; }
 
 void NFCManager::clearDetection() {
-    _hasTag             = false;
-    _isValid            = false;
-    _uid[0]             = 0;
-    _ndefPayload[0]     = 0;
-    _validationError[0] = 0;
-    _extractedName[0]   = 0;
+    _hasTag                 = false;
+    _isValid                = false;
+    _uid[0]                 = 0;
+    _ndefPayload[0]         = 0;
+    _validationError[0]     = 0;
+    _extractedName[0]       = 0;
+    _extractedIdentifier[0] = 0;
 }

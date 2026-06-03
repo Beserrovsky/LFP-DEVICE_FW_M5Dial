@@ -41,11 +41,13 @@ public:
     uint8_t getSavedOption(uint8_t questionIndex) const;
     void setSavedOption(uint8_t questionIndex, uint8_t optionIndex);
 
-    // Name entry
+    // Name and identifier (from NFC)
     const char* getNameBuffer() const;
     void setNameBuffer(const char* name);
     uint8_t getNameLength() const;
     void setNameLength(uint8_t len);
+    const char* getIdentifierBuffer() const;
+    void setIdentifierBuffer(const char* id);
 
     // WaitOrClick context
     bool getWaitOrClickIsSuccess() const;
@@ -63,9 +65,10 @@ public:
     void reset();
 
 private:
-    static const uint8_t MAX_QUESTIONS = 5;
-    static const uint8_t MAX_NAME_LENGTH = 12;
-    static const uint8_t MAX_ERROR_LENGTH = 50;
+    static const uint8_t MAX_QUESTIONS        = 5;
+    static const uint8_t MAX_NAME_LENGTH      = 16;
+    static const uint8_t MAX_ID_LENGTH        = 16;
+    static const uint8_t MAX_ERROR_LENGTH     = 50;
 
     AppScreen currentScreen;
     uint8_t tutorialStep;
@@ -75,6 +78,7 @@ private:
     uint8_t savedOptions[MAX_QUESTIONS];
     char nameBuffer[MAX_NAME_LENGTH];
     uint8_t nameLength;
+    char identifierBuffer[MAX_ID_LENGTH];
 
     bool waitOrClickIsSuccess;
     char waitOrClickMessage[MAX_ERROR_LENGTH];

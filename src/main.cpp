@@ -149,6 +149,7 @@ static void handleHome(uint8_t clicks, int /*encoderDelta*/) {
     if (g_nfcManager.hasNewTag()) {
         if (g_nfcManager.isValidTag()) {
             g_appState.setNameBuffer(g_nfcManager.getExtractedName());
+            g_appState.setIdentifierBuffer(g_nfcManager.getExtractedIdentifier());
             char msg[32];
             snprintf(msg, sizeof(msg), "Hello, %s!", g_nfcManager.getExtractedName());
             g_uiManager.setHomeLabelText(msg);
@@ -347,14 +348,18 @@ static void handleConfirm(uint8_t clicks, int /*encoderDelta*/) {
         pkt.counter      = millis() & 0xFFFF;
         pkt.timestamp_ms = millis();
 
-        pkt.innovation        = (int)g_appState.getSavedOption(0) + 1;
-        pkt.satisfactionIndex = (int)g_appState.getSavedOption(1);
-        pkt.nps               = (int)g_appState.getSavedOption(2);
+        strncpy(pkt.name,       g_appState.getNameBuffer(),       sizeof(pkt.name)       - 1);
+        strncpy(pkt.identifier, g_appState.getIdentifierBuffer(), sizeof(pkt.identifier) - 1);
 
-        uint8_t fishIdx = g_appState.getSavedOption(3);
-        strncpy(pkt.fishType,   QUESTIONS[3].options[fishIdx], sizeof(pkt.fishType)   - 1);
-        strncpy(pkt.fishColour, "",                            sizeof(pkt.fishColour) - 1);
-        strncpy(pkt.name,       g_appState.getNameBuffer(),    sizeof(pkt.name)       - 1);
+        // Q1: stored as 0-based index, sent as 1-based score
+        pkt.innovation  = g_appState.getSavedOption(0) + 1;
+        // Q2: option 0 = Yes → 1, option 1 = No → 0
+        pkt.satisfaction = (g_appState.getSavedOption(1) == 0) ? 1 : 0;
+        // Q3: option index equals NPS score directly
+        pkt.nps         = g_appState.getSavedOption(2);
+
+        uint8_t empIdx = g_appState.getSavedOption(3);
+        strncpy(pkt.bestEmployee, QUESTIONS[3].options[empIdx], sizeof(pkt.bestEmployee) - 1);
 
         bool ok = g_espNowManager.sendSurvey(pkt);
         Serial.printf("[ESP-NOW] Survey send: %s\n", ok ? "SUCCESS" : "FAILED");
