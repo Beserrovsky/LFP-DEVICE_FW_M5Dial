@@ -192,6 +192,63 @@ bool NFCManager::parseAndValidate() {
     return true;
 }
 
+bool NFCManager::writeNameTag(const char* name) {
+    // Build JSON payload
+    char json[32];
+    snprintf(json, sizeof(json), "{\"name\":\"%s\"}", name);
+    size_t jsonLen = strlen(json);
+
+    // NDEF text record:
+    //   flags   = 0xD1 (MB|ME|SR, TNF=Well-Known)
+    //   typeLen = 0x01
+    //   payloadLen = 1 (status) + 2 (lang "en") + jsonLen
+    //   type    = 0x54 ('T')
+    //   status  = 0x02 (UTF-8, lang len=2)
+    //   lang    = "en"
+    //   text    = json
+    uint8_t payloadLen = (uint8_t)(1 + 2 + jsonLen);
+    uint8_t ndefLen    = (uint8_t)(4 + payloadLen); // flags+typeLen+payloadLen+type + payload
+
+    // Detect tag (up to 2s timeout so user can present badge after clicking)
+    uint8_t uid[7], uidLen = 0;
+    if (!_nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLen, 2000)) {
+        Serial.println("[NFC] writeNameTag: no tag detected");
+        return false;
+    }
+    Serial.printf("[NFC] Writing name='%s' to tag\n", name);
+
+    // Build flat byte array: TLV + NDEF record + terminator
+    const uint8_t START_PAGE = 4;
+    const uint8_t MAX_BYTES  = 48;
+    uint8_t raw[MAX_BYTES];
+    memset(raw, 0, sizeof(raw));
+
+    uint8_t i = 0;
+    raw[i++] = 0x03;        // TLV type: NDEF message
+    raw[i++] = ndefLen;     // TLV length
+    raw[i++] = 0xD1;        // NDEF flags
+    raw[i++] = 0x01;        // type length
+    raw[i++] = payloadLen;  // payload length
+    raw[i++] = 0x54;        // 'T'
+    raw[i++] = 0x02;        // status: UTF-8, lang len=2
+    raw[i++] = 0x65;        // 'e'
+    raw[i++] = 0x6E;        // 'n'
+    memcpy(raw + i, json, jsonLen);
+    i += jsonLen;
+    raw[i++] = 0xFE;        // TLV terminator
+
+    uint8_t totalPages = (uint8_t)((i + 3) / 4);
+    for (uint8_t p = 0; p < totalPages; p++) {
+        if (!_nfc.ntag2xx_WritePage(START_PAGE + p, raw + p * 4)) {
+            Serial.printf("[NFC] Write failed at page %d\n", START_PAGE + p);
+            return false;
+        }
+    }
+
+    Serial.println("[NFC] Write success");
+    return true;
+}
+
 bool NFCManager::hasNewTag() const        { return _hasTag; }
 String NFCManager::getUID() const         { return String(_uid); }
 String NFCManager::getNDEFPayload() const { return String(_ndefPayload); }

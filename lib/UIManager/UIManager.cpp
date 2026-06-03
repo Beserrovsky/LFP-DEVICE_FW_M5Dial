@@ -43,7 +43,7 @@ bool UIManager::init() {
 void UIManager::showHome() {
     currentState = UI_STATE_HOME;
     lv_disp_load_scr(ui_Home);
-    lv_label_set_text(ui_lblHomeNFC, "Id with NFC\nor\nClick 5 times");
+    lv_label_set_text(ui_lblHomeAuxiliary, "NFC or (5x) click\nto start");
 }
 
 void UIManager::showQuestion(const char* type, const char* numeration,
@@ -92,7 +92,7 @@ void UIManager::setWaitOrClickProgress(int percent) {
 }
 
 void UIManager::setHomeLabelText(const char* text) {
-    lv_label_set_text(ui_lblHomeNFC, text);
+    lv_label_set_text(ui_lblHomeAuxiliary, text);
 }
 
 UIState UIManager::getCurrentState() const {

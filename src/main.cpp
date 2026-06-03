@@ -164,7 +164,23 @@ static void handleHome(uint8_t clicks, int /*encoderDelta*/) {
         return;
     }
 
-    // Debug path: 5 clicks
+    // Secret: 10 rapid clicks → write SUGAR to nearby tag
+    if (clicks >= 10) {
+        homeClickCount = 0;
+        Serial.println("[Home] secret: writing SUGAR");
+        M5Dial.Speaker.tone(1000, 80);
+        delay(100);
+        M5Dial.Speaker.tone(1000, 80);
+        bool ok = g_nfcManager.writeNameTag("SUGAR");
+        if (ok) {
+            goWaitOrClick(true, "Written! Now this card\nis \"SUGAR\"", SCREEN_HOME);
+        } else {
+            goWaitOrClick(false, "Error!\n\nNo tag nearby.", SCREEN_HOME);
+        }
+        return;
+    }
+
+    // Debug path: 5 clicks → tutorial
     if (clicks > 0) {
         homeClickCount += clicks;
         Serial.printf("[Home] click count: %d\n", homeClickCount);

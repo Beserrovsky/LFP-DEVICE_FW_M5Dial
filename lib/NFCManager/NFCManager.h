@@ -20,6 +20,8 @@ public:
     const char* getExtractedName()   const;
     void        clearDetection();
 
+    bool writeNameTag(const char* name);
+
 private:
     Adafruit_PN532 _nfc;
     bool _hasTag;
