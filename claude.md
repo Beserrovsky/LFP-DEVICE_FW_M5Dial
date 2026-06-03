@@ -1,59 +1,5 @@
 # M5Dial Embedded System — Project Context for Claude
 
-#### Flow 1: Home/Identification
-
-Waits for NFC read OR (for debugging) 5 clicks
-
-If NFC reading fails (ID not in correct format) - Go to WaitOrClick page with
-
-lblWaitOrClick ="Error!\n\n{message}". message must be at most 37 chars.
-
-#### Flow 2: Tutorial + Questions
-
-1. First, a two page tutorial,
-
-lblQuestionsType = "Tutorial"
-
-lblQuestionsInstruction begins with "rotate the dial until OK", once that happens, lblQuestionsInstruction = "click once to advance", once that happens, lblQuestionsInstruction = "click twice to go back", once that happens, lblQuestionsInstruction = "click once again to end tutorial".
-
-2. Then, 4 questions...
-
-Same UI, but now the Questions, lblQuestionsInstruction = Q1 text.... 
-
-Q_number = 1, 2, 3 or 4 = Number of the current question, confirmation is 5/5
-T_number = 1 or 2 = Number of current tutorial question
-
-arcQuestionsProgress.value = Q_number or T_number-1
-lblQuestionsType = "Question" or "Tutorial"
-lblQuesstionsNumeration = "{Q_number}/5" or "{T_number}/2"
-lblQuestionsInstruction = 37 characters -> Actual question or Tutorial Instruction - Example: "How would you rate J&J on innovation?"
-
-For the 5/5 question, another screen is evoked - "Confirm" - There:
-- Two clicks go back to 4/5 question
-- One click sends the data and goes to a WaitOrClick page
-
-#### Flow 3: End or retry
-
-The last WairOrClick depends on the response of the package. 
-
-1. If everything goes well:
-
-lblWaitOrClick ="Thanks!\n\nFind yourself at the bigger screen."
-
-Once the timers runs out or user clicks, go to Home
-
-2. If an error occurs:
-
-lblWaitOrClick ="Error!\n\n{message}". message must be at most 37 chars.
-
-Once the timer runs out or user clicks, go to Confirm page again.
-
-
-#### Other things to keep in mind:
-
-- Hold the button for at least 2 seconds - beeps twice - Mirror display imediattly (no release required)
-- Hold the button for 5 seconds - beeps three times - Device restart imediattly (no release required)
-
 
 ### NFC
 
