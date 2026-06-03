@@ -90,6 +90,10 @@ void UIManager::setWaitOrClickProgress(int percent) {
     lv_arc_set_value(ui_arcWaitOrClick, percent);
 }
 
+void UIManager::setHomeLabelText(const char* text) {
+    lv_label_set_text(ui_lblHomeNFC, text);
+}
+
 UIState UIManager::getCurrentState() const {
     return currentState;
 }

@@ -3,13 +3,21 @@
 #include "DisplayDriver.h"
 #include "UIManager.h"
 #include "AppState.h"
+#include "NFCManager.h"
 #include "ESPNowManager.h"
 #include "SurveyConfig.h"
 
 extern DisplayDriver g_displayDriver;
 extern UIManager g_uiManager;
 extern AppState g_appState;
+extern NFCManager g_nfcManager;
 extern ESPNowManager g_espNowManager;
+
+// ── Home screen state (declared early — referenced by goHome()) ───────────────
+static uint8_t  homeClickCount = 0;
+static bool     nfcTagShowing  = false;
+static uint32_t nfcTagShowTime = 0;
+static const uint32_t NFC_SHOW_MS = 1500;
 
 // ── Helper: option label lookup with boundary blanks ─────────────────────────
 
@@ -49,6 +57,8 @@ static void refreshTutorialStep1(const char* instruction, uint8_t optIdx) {
 // ── Screen transition helpers ─────────────────────────────────────────────────
 
 static void goHome() {
+    homeClickCount = 0;
+    nfcTagShowing  = false;
     g_appState.setCurrentScreen(SCREEN_HOME);
     g_uiManager.showHome();
     Serial.println("[STATE] → Home");
@@ -105,10 +115,13 @@ static void goConfirm() {
     Serial.println("[STATE] → Confirm");
 }
 
-static uint32_t waitOrClickEnterTime = 0;
+static uint32_t  waitOrClickEnterTime    = 0;
+static AppScreen waitOrClickReturnScreen = SCREEN_HOME;
 
-static void goWaitOrClick(bool success, const char* message) {
-    waitOrClickEnterTime = millis();
+static void goWaitOrClick(bool success, const char* message,
+                           AppScreen returnOnError = SCREEN_CONFIRM) {
+    waitOrClickEnterTime    = millis();
+    waitOrClickReturnScreen = returnOnError;
     g_appState.setWaitOrClickIsSuccess(success);
     g_appState.setWaitOrClickMessage(message);
     g_appState.setCurrentScreen(SCREEN_WAIT_OR_CLICK);
@@ -118,9 +131,40 @@ static void goWaitOrClick(bool success, const char* message) {
 
 // ── Screen handlers ───────────────────────────────────────────────────────────
 
-static uint8_t homeClickCount = 0;
-
 static void handleHome(uint8_t clicks, int /*encoderDelta*/) {
+    // NFC tag briefly shown — wait for timer then transition
+    if (nfcTagShowing) {
+        if (millis() - nfcTagShowTime >= NFC_SHOW_MS) {
+            nfcTagShowing = false;
+            g_nfcManager.clearDetection();
+            M5Dial.Speaker.tone(3000, 100);
+            startTutorial();
+        }
+        return;
+    }
+
+    // Poll NFC
+    g_nfcManager.update();
+
+    if (g_nfcManager.hasNewTag()) {
+        if (g_nfcManager.isValidTag()) {
+            g_appState.setNameBuffer(g_nfcManager.getExtractedName());
+            char msg[32];
+            snprintf(msg, sizeof(msg), "Hello, %s!", g_nfcManager.getExtractedName());
+            g_uiManager.setHomeLabelText(msg);
+            nfcTagShowing = true;
+            nfcTagShowTime = millis();
+        } else {
+            char errMsg[50];
+            snprintf(errMsg, sizeof(errMsg), "Error!\n\n%.37s",
+                     g_nfcManager.getValidationError().c_str());
+            g_nfcManager.clearDetection();
+            goWaitOrClick(false, errMsg, SCREEN_HOME);
+        }
+        return;
+    }
+
+    // Debug path: 5 clicks
     if (clicks > 0) {
         homeClickCount += clicks;
         Serial.printf("[Home] click count: %d\n", homeClickCount);
@@ -212,7 +256,7 @@ static void handleTutorial(uint8_t clicks, int encoderDelta) {
                 // Reached OK on the left → advance to T2_ready
                 g_appState.setTutorialStep(4);
                 g_uiManager.showQuestion(
-                    "Tutorial", "2/2", "you are ready, click once to proceed", 1,
+                    "Tutorial", "2/2", "You are ready. click once to proceed", 1,
                     "GO", "", ""
                 );
                 Serial.println("[Tutorial] → step 4 (T2 ready)");
@@ -289,7 +333,7 @@ static void handleConfirm(uint8_t clicks, int /*encoderDelta*/) {
         uint8_t fishIdx = g_appState.getSavedOption(3);
         strncpy(pkt.fishType,   QUESTIONS[3].options[fishIdx], sizeof(pkt.fishType)   - 1);
         strncpy(pkt.fishColour, "",                            sizeof(pkt.fishColour) - 1);
-        strncpy(pkt.name,       "Debug",                       sizeof(pkt.name)       - 1);
+        strncpy(pkt.name,       g_appState.getNameBuffer(),    sizeof(pkt.name)       - 1);
 
         bool ok = g_espNowManager.sendSurvey(pkt);
         Serial.printf("[ESP-NOW] Survey send: %s\n", ok ? "SUCCESS" : "FAILED");
@@ -318,6 +362,10 @@ static void handleWaitOrClick(uint8_t clicks, int /*encoderDelta*/) {
         if (g_appState.getWaitOrClickIsSuccess()) {
             g_appState.reset();
             goHome();
+        } else if (waitOrClickReturnScreen == SCREEN_HOME) {
+            g_appState.reset();
+            goHome();
+            Serial.println("[WaitOrClick] error → back to Home");
         } else {
             g_appState.setCurrentScreen(SCREEN_CONFIRM);
             g_uiManager.showConfirm();
@@ -407,6 +455,9 @@ void setup() {
     g_displayDriver.init();
     g_uiManager.init();
     g_appState.init();
+    if (!g_nfcManager.init()) {
+        Serial.println("[NFC] Init failed — NFC disabled");
+    }
     g_espNowManager.begin();
 
     // Start on Home screen

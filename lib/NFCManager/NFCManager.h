@@ -1,7 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <stddef.h>
+#include <Wire.h>
+#include <Adafruit_PN532.h>
 
 class NFCManager {
 public:
@@ -11,16 +12,25 @@ public:
     bool init();
     void update();
 
-    bool tagDetected() const;
-    const uint8_t* getTagUID() const;
-    uint8_t getTagUIDLength() const;
-
-    void clearDetection();
+    bool        hasNewTag()          const;
+    String      getUID()             const;
+    String      getNDEFPayload()     const;
+    bool        isValidTag()         const;
+    String      getValidationError() const;
+    const char* getExtractedName()   const;
+    void        clearDetection();
 
 private:
-    uint8_t tagUID[7];
-    uint8_t tagUIDLength;
-    bool detectionActive;
+    Adafruit_PN532 _nfc;
+    bool _hasTag;
+    bool _isValid;
+    char _uid[24];
+    char _ndefPayload[256];
+    char _validationError[50];
+    char _extractedName[12];
+
+    bool readNDEF(uint8_t uidLength);
+    bool parseAndValidate();
 };
 
 extern NFCManager g_nfcManager;

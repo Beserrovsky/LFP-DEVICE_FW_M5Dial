@@ -30,6 +30,8 @@ public:
 
     void setWaitOrClickProgress(int percent);
 
+    void setHomeLabelText(const char* text);
+
     UIState getCurrentState() const;
 
 private:
