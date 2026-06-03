@@ -28,6 +28,8 @@ public:
 
     void showWaitOrClick(const char* message);
 
+    void setWaitOrClickProgress(int percent);
+
     UIState getCurrentState() const;
 
 private:

@@ -219,9 +219,13 @@ static void handleConfirm(uint8_t clicks, int /*encoderDelta*/) {
 static const uint32_t WAIT_OR_CLICK_TIMEOUT_MS = 7000;
 
 static void handleWaitOrClick(uint8_t clicks, int /*encoderDelta*/) {
-    bool timedOut = (millis() - waitOrClickEnterTime) >= WAIT_OR_CLICK_TIMEOUT_MS;
+    uint32_t elapsed = millis() - waitOrClickEnterTime;
 
-    if (clicks >= 1 || timedOut) {
+    // Drive the arc fill to show time remaining
+    int percent = (int)((uint64_t)elapsed * 100 / WAIT_OR_CLICK_TIMEOUT_MS);
+    g_uiManager.setWaitOrClickProgress(percent);
+
+    if (clicks >= 1 || elapsed >= WAIT_OR_CLICK_TIMEOUT_MS) {
         if (g_appState.getWaitOrClickIsSuccess()) {
             g_appState.reset();
             goHome();
